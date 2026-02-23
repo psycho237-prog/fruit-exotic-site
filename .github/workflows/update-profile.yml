@@ -1,0 +1,37 @@
+name: Update Profile README
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Site Repo
+        uses: actions/checkout@v4
+
+      - name: Clone and Update Profile README
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          # Configure Git
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Clone the profile repository using the secret token
+          git clone https://x-access-token:${GH_TOKEN}@github.com/psycho237-prog/psycho237-prog.git profile-repo
+          
+          cd profile-repo
+          
+          # Use sed to update the "Brain" status with a dynamic timestamp
+          # This ensures the README changes every time a push occurs
+          TIMESTAMP=$(date +'%Y-%m-%d %H:%M')
+          sed -i "s/\*\*Brain\*\* | 🧠 .*/\*\*Brain\*\* | 🧠 Mastering 3D Web Experiences (Last Sync: $TIMESTAMP) |/" README.md
+          
+          # Commit and push
+          git add README.md
+          git commit -m "Automated Profile Update: Push detected in fruit-exotic-site ($TIMESTAMP)" || exit 0
+          git push origin main
